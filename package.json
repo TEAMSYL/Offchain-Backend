@@ -19,6 +19,7 @@
     "dev": "nodemon --watch \"src/**/*.ts\" --exec \"ts-node\" src/app.ts"
   },
   "dependencies": {
+    "ethers": "^5.6.9",
     "mysql": "^2.18.1"
   }
 }
