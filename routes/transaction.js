@@ -1,57 +1,22 @@
 const express = require("express");
 
 const { isLoggedIn } = require("./middlewares");
-const Transaction = require("../models/transaction");
+const Transaction_request = require("../models/transaction_request");
 const Product = require("../models/product");
-const router = express.Router();
-const Trade = require("../src/connectContract.js"); // 배포된 contract와 상호작용
-const Deployer = require("../src/deployContract"); // contract 배포
 
-router.post("/permit", isLoggedIn, async (req, res, next) => {
-  const { productId } = req.body;
-  try {
-    if (productId) {
-      const productInfo = await Product.findOne({
-        where: { id: productId },
-      });
-      if (productInfo) {
-        const sellerId = productInfo.dataValues.userId;
-        if (sellerId == req.user.id) {
-          await Transaction.update(
-            {
-              sellerIdId: sellerId,
-              status: "permitted",
-            },
-            {
-              where: { productId: productId },
-            }
-          );
-          const transaction = await Transaction.findOne({
-            where: { productId: productId, buyerId: buyer.id },
-          });
-          const contractAdress = await Deployer.deployContract(
-            privatekey,
-            buyer.wallet_address,
-            productID,
-            price
-          );
-        }
-      }
-    }
-    return res.status(200).send("완료");
-  } catch (error) {
-    console.error(error);
-    return next(error);
-  }
-});
+const router = express.Router();
+const Deployer = require("../src/deployContract"); // contract 배포
+const { getAddress } = require("ethers/lib/utils");
+
 router.post("/request", isLoggedIn, async (req, res, next) => {
-  const { productId, price } = req.body;
-  const buyer = req.user.id;
+  const buyer_id = req.user.id;
+  const { product_id, seller_id } = req.body;
+
   try {
-    await Transaction.create({
-      productId: productId,
-      buyerId: buyer,
-      price: price,
+    await Transaction_request.create({
+      productId: product_id,
+      buyerId: buyer_id,
+      sellerId: seller_id,
       status: "requested",
     });
     return res.status(200).send("완료");
@@ -60,27 +25,34 @@ router.post("/request", isLoggedIn, async (req, res, next) => {
     return next(error);
   }
 });
-router.get("/", async (req, res, next) => {
+
+router.post("/permit", isLoggedIn, async (req, res, next) => {
+  const { product_id, buyer_id, seller_id } = req.body;
   try {
-    const Transactions = await Transaction.findAll({
-      attributes: ["id", "TransactionName", "content", "price", "category"],
-    });
-    if (Transactions) res.send(Transactions);
+    // 테이블 관점에서 생각해서 조회를 너무 많이하게 구성함
+    // TODO: 객체 관점에서 참조를 통해 가져오도록 고쳐야 함.
+    const buyer = User.findOne({ where: { id: buyer_id } });
+    const seller = User.findOne({ where: { id: seller_id } });
+    const product = Product.findOne({ where: { id: product_id } });
+
+    const contract_address = await Deployer.deployContract(
+      seller.privatekey, // seller
+      buyer.wallet_address, //buyer
+      product_id,
+      product.price
+    );
+
+    return res.status(200).send("완료");
   } catch (error) {
     console.error(error);
-    next(error);
+    return next(error);
   }
 });
-router.get("/:id", async (req, res, next) => {
-  try {
-    const Transaction = await Transaction.findOne({
-      where: { id: req.params.id },
-    });
-    if (Transaction) res.send(Transaction);
-  } catch (error) {
-    console.error(error);
-    next(error);
-  }
+router.get("/request", isLoggedIn, async (req, res, next) => {
+  const requests = await Transaction_request.findAll({
+    where: { seller_id: req.user.id },
+  });
+  return res.send(requests);
 });
 
 module.exports = router;

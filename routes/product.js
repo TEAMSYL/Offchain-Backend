@@ -49,11 +49,11 @@ router.post("/", isLoggedIn, async (req, res, next) => {
 router.delete("/:id", isLoggedIn, async (req, res, next) => {
   try {
     const sellerInfo = await Product.findOne({
-      attributes: ["userId"],
+      attributes: ["sellerId"],
       where: { id: req.params.id },
     });
     if (sellerInfo) {
-      if (sellerInfo.dataValues.userId == req.user.id) {
+      if (sellerInfo.getSellerId() == req.user.id) {
         console.log("삭제 하기");
         await Product.destroy({ where: { id: req.params.id } });
         res.status(200).send("완료");

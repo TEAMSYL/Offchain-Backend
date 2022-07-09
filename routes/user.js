@@ -8,7 +8,6 @@ const router = express.Router();
 router.get("/:id", isLoggedIn, async (req, res, next) => {
   try {
     const user = await User.findOne({ where: { id: req.params.id } });
-    console.log(req.params);
     if (user) {
       res.status(200);
     }
