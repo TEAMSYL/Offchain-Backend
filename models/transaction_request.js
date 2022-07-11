@@ -1,4 +1,3 @@
-const { id } = require("ethers/lib/utils");
 const Sequelize = require("sequelize");
 
 module.exports = class TransactionRequest extends Sequelize.Model {
@@ -40,12 +39,8 @@ module.exports = class TransactionRequest extends Sequelize.Model {
 
   static associate(db) {
     db.TransactionRequest.belongsTo(db.Product, {
-      foreignkey: "productId",
+      foreignKey: "productId",
       targetKey: "id",
-    });
-    db.TransactionRequest.hasOne(db.TransactionPermit, {
-      foreignkey: "requestId",
-      sourceKey: "id",
     });
   }
 };

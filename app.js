@@ -21,7 +21,7 @@ const pageRouter = require("./routes/page");
 const userRouter = require("./routes/user");
 const productRouter = require("./routes/product");
 const transactionRouter = require("./routes/transaction");
-const { sequelize } = require("../nodejs_back/models");
+const { sequelize } = require("./models");
 // ./passport/index.js 와 같음
 const passportConfig = require("./passport");
 passportConfig(); // 패스포트 설정
@@ -49,6 +49,7 @@ app.use(
     cookie: {
       httpOnly: true, // js에서 쿠키에 접근할 수 없도록 방지
       secure: false, // http도 쿠키 전송 가능
+      maxAge: 1000 * 60 * 60, // 쿠키 유효기간 1시간
     },
   })
 );

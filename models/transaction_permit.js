@@ -4,11 +4,6 @@ module.exports = class TransactionPermit extends Sequelize.Model {
   static init(sequelize) {
     return super.init(
       {
-        productId: {
-          type: Sequelize.INTEGER,
-          primaryKey: true,
-          allowNull: false,
-        },
         buyerId: {
           type: Sequelize.INTEGER,
           allowNull: false,
@@ -29,11 +24,5 @@ module.exports = class TransactionPermit extends Sequelize.Model {
         collate: "utf8mb4_general_ci",
       }
     );
-  }
-  static associate(db) {
-    db.TransactionPermit.belongsTo(db.TransactionRequest, {
-      foreignkey: "productId",
-      targetKey: "id",
-    });
   }
 };

@@ -19,7 +19,7 @@ router.post("/join", isNotLoggedIn, async (req, res, next) => {
       nick,
       password: hash,
     });
-    return res.redirect("/");
+    return res.status(201).send("회원 가입 성공");
   } catch (error) {
     console.error(error);
     return next(error);
@@ -33,7 +33,7 @@ router.post("/login", isNotLoggedIn, (req, res, next) => {
       return next(authError);
     }
     if (!user) {
-      return res.send("가입 되지 않은 이메일 입니다.");
+      return res.status(400).send("가입 되지 않은 이메일 입니다.");
       // return res.redirect(`/?loginError=${info.message}`);
     }
     return req.login(user, (loginError) => {
@@ -43,7 +43,7 @@ router.post("/login", isNotLoggedIn, (req, res, next) => {
       }
       return res.status(200).send(user);
     });
-  })(req, res, next); // 미들웨어 내의 미들웨어에는 (req, res, next)를 붙입니다.
+  })(req, res, next);
 });
 
 router.get("/logout", isLoggedIn, (req, res, next) => {

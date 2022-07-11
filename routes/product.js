@@ -7,16 +7,7 @@ const router = express.Router();
 
 router.get("/", async (req, res, next) => {
   try {
-    const products = await Product.findAll({
-      attributes: [
-        "id",
-        "productName",
-        "content",
-        "price",
-        "category",
-        "userId",
-      ],
-    });
+    const products = await Product.findAll({});
     if (products) res.send(products);
   } catch (error) {
     console.error(error);
@@ -36,8 +27,9 @@ router.get("/:id", async (req, res, next) => {
 
 router.post("/", isLoggedIn, async (req, res, next) => {
   const { productName, content, category, price } = req.body;
+  console.log("판매자 아이디:", req.user.id);
   Product.create({
-    UserId: req.user.id,
+    sellerId: req.user.id,
     productName: productName,
     content: content,
     category: category,
