@@ -54,5 +54,9 @@ module.exports = class Product extends Sequelize.Model {
       foreignKey: "productId",
       sourceKey: "id",
     });
+    db.Product.hasOne(db.Transaction, {
+      foreignKey: "productId",
+      sourceKey: "id",
+    });
   }
 };

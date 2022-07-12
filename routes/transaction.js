@@ -1,20 +1,37 @@
 const express = require("express");
 
 const { isLoggedIn } = require("./middlewares");
-const Transaction_request = require("../models/transaction_request");
-const Product = require("../models/product");
-
 const router = express.Router();
+const TransactionRequest = require("../models/transaction_request");
+const Transaction = require("../models/transaction");
+const Product = require("../models/product");
+const User = require("../models/user");
 const Deployer = require("../src/deployContract"); // contract 배포
 
-router.get("/request", isLoggedIn, async (req, res, next) => {
-  const sellerId = req.user.id;
-  const { productId } = req.body;
+router.get("/request/sent", isLoggedIn, async (req, res, next) => {
+  const buyerId = req.user.id;
   try {
-    const transaction_requests = await Transaction_request.findAll({
-      where: { sellerId: sellerId },
+    const sentRequests = await TransactionRequest.findAll({
+      where: { buyerId: buyerId },
+      attributes: ["productId"],
+      include: { model: Product, attributes: ["productName"] },
     });
-    return res.status(200).send(transaction_requests);
+    return res.status(200).send(sentRequests);
+  } catch (error) {
+    console.error(error);
+    return next(error);
+  }
+});
+
+router.get("/request/recieved", isLoggedIn, async (req, res, next) => {
+  const sellerId = req.user.id;
+  try {
+    const productsWithRequests = await Product.findAll({
+      where: { sellerId: sellerId },
+      attributes: ["id"],
+      include: TransactionRequest,
+    });
+    return res.status(200).send(productsWithRequests);
   } catch (error) {
     console.error(error);
     return next(error);
@@ -23,50 +40,46 @@ router.get("/request", isLoggedIn, async (req, res, next) => {
 
 router.post("/request", isLoggedIn, async (req, res, next) => {
   const buyerId = req.user.id;
-  const { productId, sellerId } = req.body;
+  const { productId } = req.body;
   try {
-    await Transaction_request.create({
+    await TransactionRequest.create({
       productId: productId,
       buyerId: buyerId,
-      sellerId: sellerId,
-      status: "requested",
     });
-    return res.status(200).send("완료");
+    Product.update({ status: "requested" }, { where: { id: productId } });
+    return res.status(200).send("구매요청 완료");
   } catch (error) {
     console.error(error);
     return next(error);
   }
 });
 
-router.post("/permit", async (req, res, next) => {
-  const { productId, buyerId, sellerId } = req.body;
+router.post("/permission", isLoggedIn, async (req, res, next) => {
+  const { productId, buyerId } = req.body;
   try {
-    // 테이블 관점에서 생각해서 조회를 너무 많이하게 구성함
-    // TODO: 객체 관점에서 참조를 통해 가져오도록 고쳐야 함.
-    const buyer = User.findOne({ where: { id: buyerId } });
-    const seller = User.findOne({ where: { id: sellerId } });
-    const product = Product.findOne({ where: { id: productId } });
-    const sellerinfo = product.getUser();
-    res.send(sellerinfo);
-
+    const buyer = await User.findOne({ where: { id: buyerId } });
+    const product = await Product.findOne({ where: { id: productId } });
+    const seller = await product.getUser();
+    // 구매 요청을 수락한 계정의 id가 상품 판매자의 id와 같다면
+    if (seller.id != req.user.id) {
+      return res.status(401).send("해당 상품의 판매자가 아닙니다.");
+    }
     const contract_address = await Deployer.deployContract(
       seller.privatekey, // seller
       buyer.wallet_address, //buyer
       productId,
       product.price
     );
-
-    return res.status(200).send("완료");
+    Transaction.create({
+      contractAddress: contract_address,
+      productId: productId,
+    });
+    Product.update({ status: "permitted" }, { where: { id: productId } });
+    return res.status(200).send("구매요청 수락 완료");
   } catch (error) {
     console.error(error);
     return next(error);
   }
-});
-router.get("/request", isLoggedIn, async (req, res, next) => {
-  const requests = await Transaction_request.findAll({
-    where: { sellerId: req.user.id },
-  });
-  return res.send(requests);
 });
 
 module.exports = router;

@@ -10,17 +10,8 @@ module.exports = class TransactionRequest extends Sequelize.Model {
           autoIncrement: true,
           primaryKey: true,
         },
-        sellerId: {
-          type: Sequelize.INTEGER,
-          allowNull: false,
-        },
         buyerId: {
           type: Sequelize.INTEGER,
-          allowNull: false,
-        },
-        status: {
-          type: Sequelize.STRING,
-          defaultValue: "requested",
           allowNull: false,
         },
       },
