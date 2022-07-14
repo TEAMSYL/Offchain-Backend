@@ -38,10 +38,15 @@ router.post("/", isLoggedIn, async (req, res, next) => {
 });
 router.get("/management", isLoggedIn, async (req, res, next) => {
   try {
+    const limit = Number(req.query.limit);
+    const pageNumber = req.query.page;
+    const offset = 0 + limit * (pageNumber - 1);
     const sellerId = req.user.id;
     const products = await Product.findAll({
       where: { sellerId: sellerId },
       attributes: ["productName", "status", "price", "updatedAt"],
+      offset: offset,
+      limit: limit,
     });
     if (products) res.send(products);
   } catch (error) {
