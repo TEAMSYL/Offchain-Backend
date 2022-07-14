@@ -7,6 +7,7 @@ const session = require("express-session");
 const flash = require("connect-flash");
 const passport = require("passport");
 const cors = require("cors");
+const swaggerUI = require("swagger-ui-express");
 require("dotenv").config();
 
 const app = express();
@@ -66,6 +67,11 @@ app.use("/", pageRouter);
 app.use("/product", productRouter);
 app.use("/user", userRouter);
 app.use("/transaction", transactionRouter);
+app.use(
+  "/docs",
+  swaggerUI.serve,
+  // swaggerUI.setup(require("./config/swaggerDoc"))
+);
 
 // 404 처리 미들 웨어
 app.use((req, res, next) => {

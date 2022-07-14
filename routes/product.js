@@ -15,7 +15,7 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-router.get("/:id", async (req, res, next) => {
+router.get("/detail", async (req, res, next) => {
   try {
     const product = await Product.findOne({ where: { id: req.params.id } });
     if (product) res.send(product);
@@ -27,7 +27,6 @@ router.get("/:id", async (req, res, next) => {
 
 router.post("/", isLoggedIn, async (req, res, next) => {
   const { productName, content, category, price } = req.body;
-  console.log("판매자 아이디:", req.user.id);
   Product.create({
     sellerId: req.user.id,
     productName: productName,
@@ -36,6 +35,19 @@ router.post("/", isLoggedIn, async (req, res, next) => {
     price: price,
   });
   res.status(200).send("완료");
+});
+router.get("/management", isLoggedIn, async (req, res, next) => {
+  try {
+    const sellerId = req.user.id;
+    const products = await Product.findAll({
+      where: { sellerId: sellerId },
+      attributes: ["productName", "status", "price", "updatedAt"],
+    });
+    if (products) res.send(products);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
 });
 
 router.delete("/:id", isLoggedIn, async (req, res, next) => {
@@ -46,7 +58,6 @@ router.delete("/:id", isLoggedIn, async (req, res, next) => {
     });
     if (sellerInfo) {
       if (sellerInfo.getSellerId() == req.user.id) {
-        console.log("삭제 하기");
         await Product.destroy({ where: { id: req.params.id } });
         res.status(200).send("완료");
       }

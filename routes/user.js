@@ -16,15 +16,17 @@ router.get("/:id", isLoggedIn, async (req, res, next) => {
     next(error);
   }
 });
-
-router.get("/", (req, res) => {
-  var user_info = null;
-  if (!req.user) {
-    user_info = [];
-  } else {
-    user_info = JSON.parse(JSON.stringify(req.user));
+router.get("/products", async (req, res, next) => {
+  try {
+    const { sellerId } = req.body;
+    const seller = User.findOne({ where: { id: sellerId } });
+    const products = seller.getProducts();
+    console.log(products);
+    if (product) res.send(products);
+  } catch (error) {
+    console.error(error);
+    next(error);
   }
-  res.json(user_info);
 });
 
 // 지갑 정보 등록
