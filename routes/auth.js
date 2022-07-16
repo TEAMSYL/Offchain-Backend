@@ -6,7 +6,7 @@ const User = require("../models/user");
 
 const router = express.Router();
 
-router.get("/duplicateNickName", isNotLoggedIn, async (req, res, next) => {
+router.get("/duplicateNick", isNotLoggedIn, async (req, res, next) => {
   const { nick } = req.body;
   try {
     const exUser = await UswalletAddresser.findOne({ where: { nick: nick } });
