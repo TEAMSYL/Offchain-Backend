@@ -26,7 +26,7 @@ module.exports = class User extends Sequelize.Model {
           type: Sequelize.STRING(30),
           allowNull: true,
         },
-        wallet_address: {
+        walletAddress: {
           type: Sequelize.STRING,
         },
         privatekey: {

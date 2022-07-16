@@ -6,10 +6,38 @@ const User = require("../models/user");
 
 const router = express.Router();
 
-router.post("/join", isNotLoggedIn, async (req, res, next) => {
-  const { email, nick, password } = req.body;
+router.get("/duplicateNickName", isNotLoggedIn, async (req, res, next) => {
+  const { nick } = req.body;
   try {
-    const exUser = await User.findOne({ where: { email } });
+    const exUser = await UswalletAddresser.findOne({ where: { nick: nick } });
+    if (exUser) {
+      return res.status(409).send("이미 존재하는 닉네임입니다.");
+    }
+    return res.status(200).send("사용할 수 있는 닉네임입니다.");
+  } catch (error) {
+    console.error(error);
+    return next(error);
+  }
+});
+
+router.get("/duplicateEmail", isNotLoggedIn, async (req, res, next) => {
+  const { email } = req.body;
+  try {
+    const exUser = await UswalletAddresser.findOne({ where: { email: email } });
+    if (exUser) {
+      return res.status(409).send("이미 존재하는 메일입니다.");
+    }
+    return res.status(200).send("사용할 수 있는 메일입니다.");
+  } catch (error) {
+    console.error(error);
+    return next(error);
+  }
+});
+
+router.post("/join", isNotLoggedIn, async (req, res, next) => {
+  const { email, nick, password, walletAddress, privatekey } = req.body;
+  try {
+    const exUser = await UswalletAddresser.findOne({ where: { email } });
     if (exUser) {
       return res.send("이미 가입한 회원입니다.");
     }
@@ -18,6 +46,8 @@ router.post("/join", isNotLoggedIn, async (req, res, next) => {
       email,
       nick,
       password: hash,
+      walletAddress,
+      privatekey,
     });
     return res.status(201).send("회원 가입 성공");
   } catch (error) {
