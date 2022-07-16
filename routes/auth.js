@@ -9,7 +9,7 @@ const router = express.Router();
 router.get("/duplicateNick", isNotLoggedIn, async (req, res, next) => {
   const { nick } = req.body;
   try {
-    const exUser = await UswalletAddresser.findOne({ where: { nick: nick } });
+    const exUser = await User.findOne({ where: { nick: nick } });
     if (exUser) {
       return res.status(409).send("이미 존재하는 닉네임입니다.");
     }
@@ -23,7 +23,7 @@ router.get("/duplicateNick", isNotLoggedIn, async (req, res, next) => {
 router.get("/duplicateEmail", isNotLoggedIn, async (req, res, next) => {
   const { email } = req.body;
   try {
-    const exUser = await UswalletAddresser.findOne({ where: { email: email } });
+    const exUser = await User.findOne({ where: { email: email } });
     if (exUser) {
       return res.status(409).send("이미 존재하는 메일입니다.");
     }
@@ -37,7 +37,7 @@ router.get("/duplicateEmail", isNotLoggedIn, async (req, res, next) => {
 router.post("/join", isNotLoggedIn, async (req, res, next) => {
   const { email, nick, password, walletAddress, privatekey } = req.body;
   try {
-    const exUser = await UswalletAddresser.findOne({ where: { email } });
+    const exUser = await User.findOne({ where: { email } });
     if (exUser) {
       return res.send("이미 가입한 회원입니다.");
     }
