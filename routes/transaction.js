@@ -66,7 +66,7 @@ router.post("/permission", isLoggedIn, async (req, res, next) => {
     }
     const contract_address = await Deployer.deployContract(
       seller.privatekey, // seller
-      buyer.wallet_address, //buyer
+      buyer.walletAddress, //buyer
       productId,
       product.price
     );

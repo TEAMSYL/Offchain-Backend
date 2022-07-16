@@ -32,9 +32,9 @@ router.get("/products", async (req, res, next) => {
 // 지갑 정보 등록
 router.post("/account", isLoggedIn, async (req, res, next) => {
   try {
-    const { wallet_address, privatekey } = req.body;
+    const { walletAddress, privatekey } = req.body;
     await User.update(
-      { wallet_address: wallet_address, privatekey: privatekey },
+      { walletAddress: walletAddress, privatekey: privatekey },
       { where: { id: req.user.id } }
     );
   } catch (error) {
