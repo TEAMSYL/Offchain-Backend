@@ -6,8 +6,9 @@ const User = require("../models/user");
 
 const router = express.Router();
 
-router.get("/duplicateNick", isNotLoggedIn, async (req, res, next) => {
+router.post("/duplicateNick", isNotLoggedIn, async (req, res, next) => {
   const { nick } = req.body;
+  console.log(nick);
   try {
     const exUser = await User.findOne({ where: { nick: nick } });
     if (exUser) {
@@ -20,8 +21,9 @@ router.get("/duplicateNick", isNotLoggedIn, async (req, res, next) => {
   }
 });
 
-router.get("/duplicateEmail", isNotLoggedIn, async (req, res, next) => {
+router.post("/duplicateEmail", isNotLoggedIn, async (req, res, next) => {
   const { email } = req.body;
+  console.log(email);
   try {
     const exUser = await User.findOne({ where: { email: email } });
     if (exUser) {

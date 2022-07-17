@@ -2,13 +2,15 @@ const express = require("express");
 
 const { isLoggedIn } = require("./middlewares");
 const Product = require("../models/product");
+const ProductImg = require("../models/productImg");
 const router = express.Router();
 const upload = require("../src/multers");
 
 router.get("/", async (req, res, next) => {
   try {
-    const products = await Product.findAll({});
-    if (products) res.send(products);
+    const products = await Product.findAll({ include: ProductImg });
+    if (products) return res.status(200).send(products);
+    return res.status(400).send("조회된 상품이 없습니다.");
   } catch (error) {
     console.error(error);
     next(error);
@@ -17,7 +19,10 @@ router.get("/", async (req, res, next) => {
 
 router.get("/detail", async (req, res, next) => {
   try {
-    const product = await Product.findOne({ where: { id: req.params.id } });
+    const product = await Product.findOne({
+      where: { id: req.params.id },
+      include: ProductImg,
+    });
     if (product) res.send(product);
   } catch (error) {
     console.error(error);
@@ -25,29 +30,35 @@ router.get("/detail", async (req, res, next) => {
   }
 });
 
-router.post("/images", upload.array("productImgs", 10), async (req, res) => {
-  const images = req.files;
-  if (images) {
-    const locations = images.map((img) => img.location);
-    console.log(locations);
-    return res.status(201).send(locations);
+router.post(
+  "/images",
+  isLoggedIn,
+  upload.array("productImgs", 10),
+  async (req, res) => {
+    const images = req.files;
+    if (images) {
+      const locations = await images.map((img) => img.location);
+      console.log(locations);
+      return res.status(201).send(locations);
+    }
+    res.status(400).send("이미지가 없습니다.");
   }
-  res.status(400).send("이미지가 없습니다.");
-});
+);
 
 router.post("/", isLoggedIn, async (req, res, next) => {
   try {
     const { productName, content, category, price, imgUrls } = req.body;
 
     const product = await Product.create({
-      sellerId: user.req.id,
+      sellerId: req.user.id,
       productName: productName,
       content: content,
       category: category,
       price: price,
     });
+    console.log("이미지 urls", imgUrls);
     if (imgUrls) {
-      await imgUrls.map((url) => product.createProductImg({ imgUrl: url }));
+      imgUrls.data.map((url) => product.createProductImg({ imgUrl: url }));
     }
     return res.status(201).send("상품 등록 완료");
   } catch (error) {
