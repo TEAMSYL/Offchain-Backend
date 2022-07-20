@@ -8,6 +8,7 @@ const flash = require("connect-flash");
 const passport = require("passport");
 const cors = require("cors");
 const swaggerUI = require("swagger-ui-express");
+const AWS = require("aws-sdk");
 require("dotenv").config();
 
 const app = express();
@@ -69,7 +70,7 @@ app.use("/user", userRouter);
 app.use("/transaction", transactionRouter);
 app.use(
   "/docs",
-  swaggerUI.serve,
+  swaggerUI.serve
   // swaggerUI.setup(require("./config/swaggerDoc"))
 );
 
