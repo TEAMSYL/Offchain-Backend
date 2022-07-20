@@ -64,6 +64,25 @@ router.post(
     res.status(400).send("이미지가 없습니다.");
   }
 );
+router.get("/seller", async (req, res, next) => {
+  try {
+    const limit = Number(req.query.limit);
+    const pageNumber = req.query.page;
+    const offset = 0 + limit * (pageNumber - 1);
+    const products = await Product.findAll({
+      where: { sellerId: req.user.id },
+      offset: offset,
+      limit: limit,
+      include: { model: ProductImg, limit: 1 },
+    });
+    if (products) {
+      res.status(200).send(products);
+    }
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
 
 router.post("/", isLoggedIn, async (req, res, next) => {
   try {
