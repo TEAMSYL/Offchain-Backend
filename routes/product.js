@@ -107,14 +107,17 @@ router.get(
 
 router.delete("/:id", isLoggedIn, async (req, res, next) => {
   try {
-    const sellerInfo = await Product.findOne({
-      attributes: ["sellerId"],
+    const product = await Product.findOne({
+      attributes: ["id"],
       where: { id: req.params.id },
     });
-    if (sellerInfo) {
-      if (sellerInfo.getSellerId() == req.user.id) {
-        await Product.destroy({ where: { id: req.params.id } });
-        res.status(200).send("완료");
+    if (product) {
+      const seller = await product.getUser();
+      if (seller) {
+        if (seller.id == req.user.id) {
+          await Product.destroy({ where: { id: product.id } });
+          res.status(200).send("완료");
+        }
       }
     }
   } catch (error) {
