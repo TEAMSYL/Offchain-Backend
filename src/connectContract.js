@@ -27,6 +27,11 @@ async function getTrackingNumber(contractAddress) {
   return ethers.BigNumber.from(await contract.trackingNumber()).toNumber();
 }
 
+async function getCurrentState(contractAddress) {
+  let contract = new ethers.Contract(contractAddress, contractABI, provider);
+  return ethers.BigNumber.from(await contract.currentTradeState()).toNumber();
+}
+
 async function setTrackingNumber(contractAddress, privatekey, trackingNumber) {
   let wallet = new ethers.Wallet(privatekey, provider);
   let contract = new ethers.Contract(contractAddress, contractABI, provider);
