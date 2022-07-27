@@ -31,6 +31,11 @@ module.exports = class Product extends Sequelize.Model {
           type: Sequelize.TEXT,
           allowNull: true,
         },
+        thumbnail: {
+          type: Sequelize.STRING,
+          allowNull: false,
+          primaryKey: true,
+        },
       },
       {
         sequelize,

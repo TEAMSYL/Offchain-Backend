@@ -7,6 +7,8 @@ const Transaction = require("../models/transaction");
 const Product = require("../models/product");
 const User = require("../models/user");
 const Deployer = require("../src/deployContract"); // contract 배포
+const connectContract = require("../src/connectContract");
+const ProductImg = require("../models/productImg");
 
 router.get("/request/sent", isLoggedIn, async (req, res, next) => {
   const buyerId = req.user.id;
@@ -71,6 +73,7 @@ router.post("/permission", isLoggedIn, async (req, res, next) => {
       product.price
     );
     Transaction.create({
+      buyerId: buyerId,
       contractAddress: contract_address,
       productId: productId,
     });
@@ -80,6 +83,27 @@ router.post("/permission", isLoggedIn, async (req, res, next) => {
     console.error(error);
     return next(error);
   }
+});
+router.get("/permission", isLoggedIn, async (req, res, next) => {
+  const sellerId = req.user.id;
+  const seller = await User.findOne({ where: { id: sellerId } });
+  const permittedProducts = await seller.getProducts({
+    where: { status: "permitted" },
+    include: { model: Transaction, attributes: ["buyerId", "contractAddress"] },
+  });
+  const buyers = await Promise.all(
+    permittedProducts.map(async (product) => {
+      const buyer = await User.findOne({
+        where: { id: product.Transaction.buyerId },
+        attributes: ["email", "nick", "snsId"],
+      });
+      const txState = await connectContract.getCurrentState(
+        product.Transaction.contractAddress
+      );
+      return { ...product.dataValues, buyer: buyer, txState: txState };
+    })
+  );
+  res.status(200).send(buyers);
 });
 
 module.exports = router;

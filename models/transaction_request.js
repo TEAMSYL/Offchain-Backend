@@ -33,5 +33,9 @@ module.exports = class TransactionRequest extends Sequelize.Model {
       foreignKey: "productId",
       targetKey: "id",
     });
+    db.TransactionRequest.belongsTo(db.Transaction, {
+      foreignKey: "transactionId",
+      targetKey: "id",
+    });
   }
 };

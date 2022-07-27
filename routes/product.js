@@ -44,22 +44,31 @@ router.get("/seller", isLoggedIn, async (req, res, next) => {
   }
 });
 
-router.post("/", isLoggedIn, async (req, res, next) => {
-  try {
-    const { productName, content, category, price } = req.body;
-    const product = await Product.create({
-      sellerId: req.user.id,
-      productName: productName,
-      content: content,
-      category: category,
-      price: price,
-    });
-    return res.status(201).send({ productId: product.id });
-  } catch (error) {
-    console.error(error);
-    next(error);
+router.post(
+  "/",
+  multer.upload.single("thumbnail", 1),
+  isLoggedIn,
+  async (req, res, next) => {
+    try {
+      const data = req.body.data;
+      const { id, productName, content, category, price } = JSON.parse(data);
+      const thumbnail = req.file.location;
+
+      const product = await Product.create({
+        sellerId: id,
+        productName: productName,
+        content: content,
+        category: category,
+        price: price,
+        thumbnail: thumbnail,
+      });
+      return res.status(201).send({ productId: product.id });
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
   }
-});
+);
 
 router.post(
   "/images/:id",
@@ -121,6 +130,8 @@ router.delete("/:id", async (req, res, next) => {
         );
         // s3에 있는 이미지들 삭제
         filenames.map((file) => multer.delete_file(file));
+        // s3에서 thumbnail 삭제
+        multer.delete_file(product.thumbnail);
         await ProductImg.destroy({ where: { productId: product.id } });
         await product.destroy();
         res.status(200).send("완료");

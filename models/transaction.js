@@ -4,6 +4,10 @@ module.exports = class Transaction extends Sequelize.Model {
   static init(sequelize) {
     return super.init(
       {
+        buyerId: {
+          type: Sequelize.BIGINT,
+          allowNull: false,
+        },
         contractAddress: {
           type: Sequelize.STRING,
           allowNull: false,
@@ -25,6 +29,10 @@ module.exports = class Transaction extends Sequelize.Model {
     db.Transaction.belongsTo(db.Product, {
       foreignKey: "productId",
       targetKey: "id",
+    });
+    db.Transaction.hasOne(db.TransactionRequest, {
+      foreignKey: "transactionId",
+      sourceKey: "id",
     });
   }
 };
