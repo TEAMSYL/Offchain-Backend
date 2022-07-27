@@ -7,7 +7,7 @@ const s3 = new aws.S3();
 module.exports.upload = multer({
   storage: multerS3({
     s3: s3,
-    bucket: "sylimgs",
+    bucket: "graduationproject",
     acl: "public-read",
     contentType: multerS3.AUTO_CONTENT_TYPE,
     key: function (req, file, callback) {
@@ -19,11 +19,12 @@ module.exports.upload = multer({
     },
   }),
 });
+
 module.exports.delete_file = (file) => {
   try {
     s3.deleteObject(
       {
-        Bucket: "sylimgs",
+        Bucket: "graduationproject",
         Key: `productImgs/${file}`,
       },
       function (error, data) {

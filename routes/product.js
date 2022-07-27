@@ -51,11 +51,12 @@ router.post(
   async (req, res, next) => {
     try {
       const data = req.body.data;
-      const { id, productName, content, category, price } = JSON.parse(data);
+      console.log('data:',data);
+      const { productName, content, category, price } = JSON.parse(data);
       const thumbnail = req.file.location;
 
       const product = await Product.create({
-        sellerId: id,
+        sellerId: req.user.id,
         productName: productName,
         content: content,
         category: category,
@@ -116,9 +117,10 @@ router.get(
 router.delete("/:id", async (req, res, next) => {
   try {
     const product = await Product.findOne({
-      attributes: ["id", "sellerId"],
+      attributes: ["id", "sellerId", "thumbnail"],
       where: { id: req.params.id },
     });
+
     if (product) {
       const seller = await product.getUser();
       if (seller.id) {
@@ -131,6 +133,7 @@ router.delete("/:id", async (req, res, next) => {
         // s3에 있는 이미지들 삭제
         filenames.map((file) => multer.delete_file(file));
         // s3에서 thumbnail 삭제
+
         multer.delete_file(product.thumbnail);
         await ProductImg.destroy({ where: { productId: product.id } });
         await product.destroy();
