@@ -10,10 +10,6 @@ module.exports = class TransactionRequest extends Sequelize.Model {
           autoIncrement: true,
           primaryKey: true,
         },
-        buyerId: {
-          type: Sequelize.INTEGER,
-          allowNull: false,
-        },
       },
       {
         sequelize,
@@ -37,5 +33,9 @@ module.exports = class TransactionRequest extends Sequelize.Model {
       foreignKey: "transactionId",
       targetKey: "id",
     });
+    db.TransactionRequest.belongsTo(db.User, {
+      foreignKey: "buyerId",
+      targetKey: "id",
+    })
   }
 };

@@ -40,10 +40,36 @@ router.get("/request/recieved", isLoggedIn, async (req, res, next) => {
   }
 });
 
+router.get("/request/recieved/product", isLoggedIn, async (req, res, next) => {
+  const productId = Number(req.query.productId);
+  console.log(productId);
+  try {
+    const recievedRequests = await TransactionRequest.findAll({
+      where: { productId: productId },
+      include: { model: User, attributes: ["id", "nick"] },
+    });
+
+    return res.status(200).send(recievedRequests);
+  } catch (error) {
+    return next(error);
+  }
+});
+
 router.post("/request", isLoggedIn, async (req, res, next) => {
   const buyerId = req.user.id;
   const { productId } = req.body;
   try {
+    const existRequest = await TransactionRequest.findOne({
+      where: { 
+        productId: productId,
+        buyerId: buyerId
+      }
+    });
+    console.log('existRequest: ', existRequest);
+    if (existRequest) {
+      return res.status(400).send("이미 구매 요청을 한 상품입니다.");
+    }
+
     await TransactionRequest.create({
       productId: productId,
       buyerId: buyerId,
@@ -84,6 +110,18 @@ router.post("/permission", isLoggedIn, async (req, res, next) => {
     return next(error);
   }
 });
+
+router.delete("/request/:id", isLoggedIn, async (req, res, next) => {
+  const requestId = req.params.id;
+  try {
+    await TransactionRequest.destroy({ where: { id: requestId } });
+    res.status(200).send("제거완료");
+  } catch (error) {
+    console.log(error);
+    return next(error);
+  }
+});
+
 router.get("/permission", isLoggedIn, async (req, res, next) => {
   const sellerId = req.user.id;
   const seller = await User.findOne({ where: { id: sellerId } });

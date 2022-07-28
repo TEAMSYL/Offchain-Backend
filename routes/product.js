@@ -19,7 +19,6 @@ router.get("/", async (req, res, next) => {
 
 router.get("/detail", async (req, res, next) => {
   try {
-    console.log('params:', req.params);
     const product = await Product.findOne({
       where: { id: req.query.id },
       include: ProductImg,
