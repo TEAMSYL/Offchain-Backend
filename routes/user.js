@@ -6,16 +6,18 @@ const User = require("../models/user");
 const router = express.Router();
 
 router.get("/", isLoggedIn, async (req, res, next) => {
+  console.log("getUser 호출됨");
   try {
     const user = await User.findOne({ where: { id: req.user.id } });
     if (user) {
-      res.status(200);
+      res.status(200).send(user);
     }
   } catch (error) {
     console.error(error);
     next(error);
   }
 });
+
 router.get("/products", async (req, res, next) => {
   try {
     const { sellerId } = req.body;

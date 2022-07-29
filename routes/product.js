@@ -5,6 +5,10 @@ const router = express.Router();
 const multer = require("../src/multers");
 const Product = require("../models/product");
 const ProductImg = require("../models/productImg");
+const { zeroPad } = require('ethers/lib/utils');
+const { Sequelize } = require('sequelize');
+
+const Op = Sequelize.Op;
 
 router.get("/", async (req, res, next) => {
   try {
@@ -41,6 +45,18 @@ router.get("/seller", isLoggedIn, async (req, res, next) => {
     }
   } catch (error) {
     console.error(error);
+  }
+});
+
+router.get('/user/:userid', async (req, res, next) => {
+  console.log('req.prams.userid', req.params);
+  try {
+    const products = await Product.findAll({
+      where: { sellerId: req.params.userid },
+    })
+    res.status(200).send(products);
+  } catch (error) {
+    console.log(error);
   }
 });
 
@@ -112,6 +128,27 @@ router.get(
       next(error);
     }
   })
+);
+
+router.get("/search", async (req, res, next) => {
+    try {
+      let searchWord = req.query.searchword;
+      console.log('searchWord:',searchWord);
+      const products = await Product.findAll({
+        where: {
+          [Op.or]: [
+            {productName: { [Op.like]: "%" + searchWord + "%" }},
+            {content: { [Op.like]: "%" + searchWord + "%" }}
+          ]
+          
+        }
+      });
+      return res.status(200).send(products);
+    } catch (error) {
+      console.log(error);
+      return next(error);
+    }
+  }
 );
 
 router.delete("/:id", async (req, res, next) => {
