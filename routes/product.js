@@ -5,14 +5,25 @@ const router = express.Router();
 const multer = require("../src/multers");
 const Product = require("../models/product");
 const ProductImg = require("../models/productImg");
-const { zeroPad } = require('ethers/lib/utils');
-const { Sequelize } = require('sequelize');
+const { zeroPad } = require("ethers/lib/utils");
+const { Sequelize } = require("sequelize");
 
 const Op = Sequelize.Op;
 
 router.get("/", async (req, res, next) => {
   try {
     const products = await Product.findAll({ include: ProductImg });
+    if (products) return res.status(200).send(products);
+    return res.status(400).send("조회된 상품이 없습니다.");
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+router.get("/category/:id", async (req, res, next) => {
+  try {
+    const categoryId = req.params.id;
+    const products = await Product.findAll({ where: { category: categoryId } });
     if (products) return res.status(200).send(products);
     return res.status(400).send("조회된 상품이 없습니다.");
   } catch (error) {
@@ -48,12 +59,12 @@ router.get("/seller", isLoggedIn, async (req, res, next) => {
   }
 });
 
-router.get('/user/:userid', async (req, res, next) => {
-  console.log('req.prams.userid', req.params);
+router.get("/user/:userid", async (req, res, next) => {
+  console.log("req.prams.userid", req.params);
   try {
     const products = await Product.findAll({
       where: { sellerId: req.params.userid },
-    })
+    });
     res.status(200).send(products);
   } catch (error) {
     console.log(error);
@@ -67,7 +78,7 @@ router.post(
   async (req, res, next) => {
     try {
       const data = req.body.data;
-      console.log('data:',data);
+      console.log("data:", data);
       const { productName, content, category, price } = JSON.parse(data);
       const thumbnail = req.file.location;
 
@@ -131,25 +142,23 @@ router.get(
 );
 
 router.get("/search", async (req, res, next) => {
-    try {
-      let searchWord = req.query.searchword;
-      console.log('searchWord:',searchWord);
-      const products = await Product.findAll({
-        where: {
-          [Op.or]: [
-            {productName: { [Op.like]: "%" + searchWord + "%" }},
-            {content: { [Op.like]: "%" + searchWord + "%" }}
-          ]
-          
-        }
-      });
-      return res.status(200).send(products);
-    } catch (error) {
-      console.log(error);
-      return next(error);
-    }
+  try {
+    let searchWord = req.query.searchword;
+    console.log("searchWord:", searchWord);
+    const products = await Product.findAll({
+      where: {
+        [Op.or]: [
+          { productName: { [Op.like]: "%" + searchWord + "%" } },
+          { content: { [Op.like]: "%" + searchWord + "%" } },
+        ],
+      },
+    });
+    return res.status(200).send(products);
+  } catch (error) {
+    console.log(error);
+    return next(error);
   }
-);
+});
 
 router.delete("/:id", async (req, res, next) => {
   try {
