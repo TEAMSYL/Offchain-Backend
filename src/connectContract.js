@@ -64,8 +64,10 @@ async function cancel(contractAddress, privateKey) {
   let wallet = new ethers.Wallet(privateKey, provider);
   let contract = new ethers.Contract(contractAddress, contractABI, provider);
   let contractWithSigner = contract.connect(wallet);
-
-  let tx = await contractWithSigner.cancel();
+  let option = { gasLimit: 3e7 };
+  let tx = await contractWithSigner.cancel(option);
+  await tx.wait();
+  console.log('트랜잭션:', tx);
 }
 
 module.exports = {

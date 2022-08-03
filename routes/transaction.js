@@ -98,6 +98,11 @@ router.post("/permission", isLoggedIn, async (req, res, next) => {
       productId,
       product.price
     );
+
+    if (contract_address === false) {
+      return res.status(400).send("보증금 등록을 위한 계좌 잔액이 부족합니다.");
+    }
+
     Transaction.create({
       buyerId: buyerId,
       contractAddress: contract_address,
@@ -129,6 +134,7 @@ router.get("/permission", isLoggedIn, async (req, res, next) => {
     where: { status: "permitted" },
     include: { model: Transaction, attributes: ["buyerId", "contractAddress"] },
   });
+  
   const buyers = await Promise.all(
     permittedProducts.map(async (product) => {
       const buyer = await User.findOne({
@@ -143,5 +149,41 @@ router.get("/permission", isLoggedIn, async (req, res, next) => {
   );
   res.status(200).send(buyers);
 });
+
+router.get("/purchase/permission", isLoggedIn, async (req, res, next) => {
+  const userId = req.user.id;
+  const user = await User.findOne({ where: { id: userId } });
+  const purchaseTxs = await Transaction.findAll({ where: { buyerId: userId } });
+
+  const result = await Promise.all(
+    purchaseTxs.map(async (tx) => {
+      const product = await Product.findOne({
+        where: { id: tx.productId }
+      });
+      const txState = await connectContract.getCurrentState(tx.contractAddress);
+      const seller = await User.findOne({
+        where: { id: product.sellerId },
+        attributes: ["email", "nick", "id"],
+      });
+      return { ...tx.dataValues, seller: seller, txState: txState, product: product};
+    })
+  );
+  res.status(200).send(result);
+});
+
+router.delete("/cancel/:id", isLoggedIn, async (req, res, next) => {
+  const userId = req.user.id;
+  const txId = req.params.id;
+  const user = await User.findOne({ where: { id: userId }});
+  const permittedTx = await Transaction.findOne({ where: { id: txId }});
+  try { 
+    const response = await connectContract.cancel(permittedTx.contractAddress, user.privatekey);
+    console.log('삭제 결과:', resonse);
+    return res.status(200).send("성공");
+  } catch (error) {
+    console.log(error);
+    return next(error);
+  }
+})
 
 module.exports = router;

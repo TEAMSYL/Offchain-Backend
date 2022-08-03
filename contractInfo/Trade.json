@@ -17,7 +17,7 @@
         "type": "uint256"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "constructor"
   },
   {
@@ -35,20 +35,6 @@
   },
   {
     "inputs": [],
-    "name": "cancel",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "completeTrade",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "currentTradeState",
     "outputs": [
       {
@@ -58,19 +44,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "makePayment",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "result",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -113,6 +86,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "trackingNumber",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -127,15 +113,29 @@
   },
   {
     "inputs": [],
-    "name": "trackingNumber",
+    "name": "makePayment",
     "outputs": [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
+        "internalType": "bool",
+        "name": "result",
+        "type": "bool"
       }
     ],
-    "stateMutability": "view",
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "completeTrade",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "cancel",
+    "outputs": [],
+    "stateMutability": "payable",
     "type": "function"
   }
 ]
