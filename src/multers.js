@@ -2,12 +2,14 @@ const multer = require("multer");
 const multerS3 = require("multer-s3");
 const aws = require("aws-sdk");
 aws.config.loadFromPath(__dirname + "/../config/s3.json");
+const env = process.env.NODE_ENV || "development";
+const config = require("../config/config")[env];
 
 const s3 = new aws.S3();
 module.exports.upload = multer({
   storage: multerS3({
     s3: s3,
-    bucket: "graduationproject",
+    bucket: config.bucket,
     acl: "public-read",
     contentType: multerS3.AUTO_CONTENT_TYPE,
     key: function (req, file, callback) {
@@ -24,7 +26,7 @@ module.exports.delete_file = (file) => {
   try {
     s3.deleteObject(
       {
-        Bucket: "graduationproject",
+        Bucket: config.bucket,
         Key: `productImgs/${file}`,
       },
       function (error, data) {

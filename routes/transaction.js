@@ -139,7 +139,7 @@ router.get("/permission", isLoggedIn, async (req, res, next) => {
     permittedProducts.map(async (product) => {
       const buyer = await User.findOne({
         where: { id: product.Transaction.buyerId },
-        attributes: ["email", "nick", "snsId"],
+        attributes: ["email", "nick", "kakaoId"],
       });
       const txState = await connectContract.getCurrentState(
         product.Transaction.contractAddress

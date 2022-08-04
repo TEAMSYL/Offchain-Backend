@@ -8,7 +8,6 @@ const router = express.Router();
 
 router.post("/duplicateNick", isNotLoggedIn, async (req, res, next) => {
   const { nick } = req.body;
-  console.log(nick);
   try {
     const exUser = await User.findOne({ where: { nick: nick } });
     if (exUser) {
@@ -66,7 +65,6 @@ router.post("/login", isNotLoggedIn, (req, res, next) => {
     }
     if (!user) {
       return res.status(400).send("가입 되지 않은 이메일 입니다.");
-      // return res.redirect(`/?loginError=${info.message}`);
     }
     return req.login(user, (loginError) => {
       if (loginError) {
@@ -84,7 +82,6 @@ router.get("/logout", isLoggedIn, (req, res, next) => {
       return next(err);
     }
     req.session.destroy();
-    // res.redirect("/");
     res.send("로그아웃 완료");
   });
 });
@@ -94,10 +91,10 @@ router.get("/kakao", passport.authenticate("kakao"));
 router.get(
   "/kakao/callback",
   passport.authenticate("kakao", {
-    failureRedirect: "/",
+    failureRedirect: "http://localhost:3000",
   }),
   (req, res) => {
-    res.redirect("/");
+    res.redirect("http://localhost:3000");
   }
 );
 
