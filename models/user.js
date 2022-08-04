@@ -15,14 +15,14 @@ module.exports = class User extends Sequelize.Model {
         },
         password: {
           type: Sequelize.STRING(100),
-          allowNull: false,
+          allowNull: true,
         },
         provider: {
           type: Sequelize.STRING(10),
           allowNull: false,
           defaultValue: "local",
         },
-        snsId: {
+        kakaoId: {
           type: Sequelize.STRING(30),
           allowNull: true,
         },
