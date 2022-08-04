@@ -186,4 +186,17 @@ router.delete("/cancel/:id", isLoggedIn, async (req, res, next) => {
   }
 })
 
+router.post("/makepayment", isLoggedIn, async (req, res, next) => {
+  const txId = req.body.txId;
+  const user = await User.findOne({ where: { id: req.user.id}});
+  const tx = await Transaction.findOne({ where: {id: txId}});
+  try {
+    const response = await connectContract.makePayment(tx.contractAddress, user.privatekey);
+    console.log(response);
+  } catch (error) {
+    console.log(error);
+  }
+  
+})
+
 module.exports = router;

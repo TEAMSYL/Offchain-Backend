@@ -1,5 +1,5 @@
 // // 필요한 .js 파일 import하기
-// const Trade = require("./connectContract.js"); // 배포된 contract와 상호작용
+const Trade = require("./connectContract.js"); // 배포된 contract와 상호작용
 const Deployer = require("./deployContract.js"); // contract 배포
 
 // (async function () {
@@ -48,12 +48,9 @@ const Deployer = require("./deployContract.js"); // contract 배포
 
 (async function () {
     try {
-        Deployer.deployContract(
-            "0x66133596d7d8d6b7449c98da8e41d418c8e70d4b12bf4ca2a23012043a2ac815",
-            "0x5A13fd98E4b6332a10c1539E9D5cCE6BFdB61d73",
-            1,
-            1000
-        );
+        const price = await Trade.getPrice('0x7776f6f7805dbc226E636710D8c1B0A3d60d7d56');
+        console.log('가격:', price);
+        const result = await Trade.makePayment()
     } catch (e) {
         console.log(e);
     }
