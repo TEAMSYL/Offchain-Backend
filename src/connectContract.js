@@ -19,7 +19,7 @@ async function getBuyerAddr(contractAddress) {
 
 async function getPrice(contractAddress) {
   let contract = new ethers.Contract(contractAddress, contractABI, provider);
-  return ethers.BigNumber.from(await contract.price());
+  return ethers.BigNumber.from(await contract.price()).toString();
 }
 
 async function getTrackingNumber(contractAddress) {

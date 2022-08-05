@@ -193,8 +193,10 @@ router.post("/makepayment", isLoggedIn, async (req, res, next) => {
   try {
     const response = await connectContract.makePayment(tx.contractAddress, user.privatekey);
     console.log(response);
+    return res.status(200).send('입금 완료');
   } catch (error) {
     console.log(error);
+    return error.resonse;
   }
   
 })

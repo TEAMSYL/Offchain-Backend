@@ -48,9 +48,14 @@ const Deployer = require("./deployContract.js"); // contract 배포
 
 (async function () {
     try {
-        const price = await Trade.getPrice('0x7776f6f7805dbc226E636710D8c1B0A3d60d7d56');
+        const price = await Trade.getPrice('0xB9c31718d1f6236CD593AC925C69DEEC1cb40F85');
         console.log('가격:', price);
-        const result = await Trade.makePayment()
+        // const result = await Trade.makePayment(
+        //     '0x7776f6f7805dbc226E636710D8c1B0A3d60d7d56',
+        //     '0x52a0a8e387fe4819546a7debf93da1979be16caf98196277a9022b49b4b7dc38'
+        // );
+        const status = await Trade.getCurrentState('0xB9c31718d1f6236CD593AC925C69DEEC1cb40F85');
+        console.log('상태:', status);
     } catch (e) {
         console.log(e);
     }
