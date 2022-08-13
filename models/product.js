@@ -20,7 +20,7 @@ module.exports = class Product extends Sequelize.Model {
           allowNull: false,
         },
         price: {
-          type: Sequelize.INTEGER,
+          type: Sequelize.DOUBLE,
           allowNull: false,
         },
         category: {
