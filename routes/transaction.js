@@ -230,4 +230,20 @@ router.post("/complete", isLoggedIn, async (req, res, next) => {
     return next(error);
   }
 })
+
+router.put("/return", isLoggedIn, async (req, res, next) => {
+  const productId = req.body.productId;
+  const trackingNumber = req.body.trackingNumber;
+  const user = await User.findOne({ where: { id: req.user.id }});
+  const tx = await Transaction.findOne({ where: { productId: productId }});
+
+  try {
+    const response = await connectContract.returnProduct(tx.contractAddress, user.privatekey);
+    return res.status(200).send("환불완료");
+  } catch (error) {
+    console.log(error);
+    return next(error);
+  }
+})
+
 module.exports = router;

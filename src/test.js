@@ -2,6 +2,9 @@
 const Trade = require("./connectContract.js"); // 배포된 contract와 상호작용
 const Deployer = require("./deployContract.js"); // contract 배포
 const axios = require('axios');
+const ethers = require("ethers");
+const RPC_SERVER_ADDR = "HTTP://127.0.0.1:7545"; 
+const provider = ethers.getDefaultProvider(RPC_SERVER_ADDR);
 // (async function () {
 //   // contract 배포 함수
 //   let privateKey = "0x..."; // 판매자, 즉 contract 배포자의 지갑 private Key
@@ -48,17 +51,17 @@ const axios = require('axios');
 
 (async function () {
     try {
-        // const price = await Trade.getPrice('0xB9c31718d1f6236CD593AC925C69DEEC1cb40F85');
+        const buyer = await Trade.getBuyerAddr('0x21436e17d53fc0e34609883Ad095c3C6D0ad79E5');
         // console.log('가격:', price);
         // const result = await Trade.makePayment(
         //     '0x7776f6f7805dbc226E636710D8c1B0A3d60d7d56',
         //     '0x52a0a8e387fe4819546a7debf93da1979be16caf98196277a9022b49b4b7dc38'
         // );
         //const price = await Trade.getPrice("0x9A9740E10e5E5D45B489fb9BF0D025A7cA07C445");
-        const response = await axios.get('https://api.upbit.com/v1/ticker?markets=KRW-ETH');
+        console.log(buyer);
+        await Trade.returnProduct('0x21436e17d53fc0e34609883Ad095c3C6D0ad79E5', '0x52a0a8e387fe4819546a7debf93da1979be16caf98196277a9022b49b4b7dc38');
         
-        console.log('price:', response.data[0].trade_price);
-        console.log('5000원을 eth로:', 5000 / response.data[0].trade_price);
+        
     } catch (e) {
         console.log(e);
     }
