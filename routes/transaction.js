@@ -201,4 +201,33 @@ router.post("/makepayment", isLoggedIn, async (req, res, next) => {
   
 })
 
+router.post("/trackingnumber", isLoggedIn, async (req, res, next) => {
+  const trackingNumber = req.body.trackingNumber;
+  const productId = req.body.productId;
+  const user = await User.findOne({ where: { id: req.user.id}});
+  const tx = await Transaction.findOne({ where: {productId: productId}});
+
+  try {
+    const response = await connectContract.setTrackingNumber(tx.contractAddress, user.privatekey, parseInt(trackingNumber));
+    
+    return res.status(200).send('등록완료');
+  } catch (error) {
+    console.log(error);
+    return next(error);
+  }
+})
+
+router.post("/complete", isLoggedIn, async (req, res, next) => {
+  const productId = req.body.productId;
+  const user = await User.findOne({ where: { id: req.user.id}});
+  const tx = await Transaction.findOne({ where: {productId: productId}});
+
+  try {
+    const response = await connectContract.completeTrade(tx.contractAddress, user.privatekey);
+    return res.status(200).send("확정완료");
+  } catch (error) {
+    console.log(error);
+    return next(error);
+  }
+})
 module.exports = router;
