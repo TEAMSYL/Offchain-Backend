@@ -1,4 +1,5 @@
 const express = require("express");
+const axios = require("axios");
 
 const { isLoggedIn } = require("./middlewares");
 const router = express.Router();
@@ -9,6 +10,9 @@ const User = require("../models/user");
 const Deployer = require("../src/deployContract"); // contract 배포
 const connectContract = require("../src/connectContract");
 const ProductImg = require("../models/productImg");
+const { response } = require('express');
+
+const TRACKING_API_KEY = "pIIVNRYJI740e26nNS4zqA";
 
 router.get("/request/sent", isLoggedIn, async (req, res, next) => {
   const buyerId = req.user.id;
@@ -203,13 +207,14 @@ router.post("/makepayment", isLoggedIn, async (req, res, next) => {
 
 router.post("/trackingnumber", isLoggedIn, async (req, res, next) => {
   const trackingNumber = req.body.trackingNumber;
+  const trackingCode = req.body.trackingCode;
   const productId = req.body.productId;
   const user = await User.findOne({ where: { id: req.user.id}});
   const tx = await Transaction.findOne({ where: {productId: productId}});
 
   try {
     const response = await connectContract.setTrackingNumber(tx.contractAddress, user.privatekey, parseInt(trackingNumber));
-    
+    await connectContract.setTrackingCode(tx.contractAddress, user.privatekey, String(trackingCode));
     return res.status(200).send('등록완료');
   } catch (error) {
     console.log(error);
@@ -234,16 +239,51 @@ router.post("/complete", isLoggedIn, async (req, res, next) => {
 router.put("/return", isLoggedIn, async (req, res, next) => {
   const productId = req.body.productId;
   const trackingNumber = req.body.trackingNumber;
+  const trackingCode = req.body.trackingCode;
   const user = await User.findOne({ where: { id: req.user.id }});
   const tx = await Transaction.findOne({ where: { productId: productId }});
 
   try {
-    const response = await connectContract.returnProduct(tx.contractAddress, user.privatekey);
+    const response = await connectContract.returnProduct(tx.contractAddress, user.privatekey, trackingNumber, trackingCode);
     return res.status(200).send("환불완료");
   } catch (error) {
     console.log(error);
     return next(error);
   }
+})
+
+router.get("/trackinginfo/:id", isLoggedIn, async (req, res, next) => {
+    const productId = req.params.id;
+    const user = await User.findOne({ where: { id: req.user.id }});
+    const tx = await Transaction.findOne({ where: { productId: productId }});
+
+    try {
+      const trackingNumber = await connectContract.getTrackingNumber(tx.contractAddress);
+      const trackingCode = await connectContract.getTrackingCode(tx.contractAddress);
+
+      console.log('trackingNumber:', trackingNumber);
+      console.log('trackingCode: ', trackingCode);
+
+      const trackingResponse = await axios.get(
+        `http://info.sweettracker.co.kr/api/v1/trackingInfo?t_key=${TRACKING_API_KEY}&t_code=${trackingCode}&t_invoice=${trackingNumber}`
+      );
+    
+      if (trackingResponse.data.status == false) {
+        return res.status(202).send(trackingResponse.data.msg);
+      }
+
+      const trackingInfo = {
+        complete: trackingResponse.data.complete,
+        trackingNumber: trackingNumber,
+        trackingCode: trackingCode,
+        trackingDetails: trackingResponse.data.trackingDetails
+      };
+
+      return res.status(200).send(trackingInfo); 
+    } catch(error) {
+      console.log(error);
+      return next(error);
+    }
 })
 
 module.exports = router;

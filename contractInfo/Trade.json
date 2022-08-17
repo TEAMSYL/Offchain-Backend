@@ -100,6 +100,19 @@
   },
   {
     "inputs": [],
+    "name": "trackingCode",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "trackingNumber",
     "outputs": [
       {
@@ -120,6 +133,19 @@
       }
     ],
     "name": "setTrackingNumber",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_trackingCode",
+        "type": "string"
+      }
+    ],
+    "name": "setTrackingCode",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -152,7 +178,18 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_trackingNumber",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_trackingCode",
+        "type": "string"
+      }
+    ],
     "name": "returnProduct",
     "outputs": [],
     "stateMutability": "payable",
