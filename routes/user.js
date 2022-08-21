@@ -45,4 +45,16 @@ router.post("/account", isLoggedIn, async (req, res, next) => {
   }
 });
 
+router.get("/:id", async (req, res, next) => {
+  try {
+    const user = await User.findOne({ where: { id: req.params.id } });
+    if (user) {
+      res.send(user.nick);
+    }
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
 module.exports = router;
