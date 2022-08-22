@@ -77,7 +77,7 @@ async function cancel(contractAddress, privateKey) {
   let wallet = new ethers.Wallet(privateKey, provider);
   let contract = new ethers.Contract(contractAddress, contractABI, provider);
   let contractWithSigner = contract.connect(wallet);
-  let tx = await contractWithSigner.cancel(option);
+  let tx = await contractWithSigner.cancel();
   await tx.wait();
 }
 

@@ -11,6 +11,8 @@ const Deployer = require("../src/deployContract"); // contract 배포
 const connectContract = require("../src/connectContract");
 const ProductImg = require("../models/productImg");
 const { response } = require('express');
+const { Sequelize } = require("sequelize");
+const Op = Sequelize.Op;
 
 const TRACKING_API_KEY = "pIIVNRYJI740e26nNS4zqA";
 
@@ -135,7 +137,7 @@ router.get("/permission", isLoggedIn, async (req, res, next) => {
   const sellerId = req.user.id;
   const seller = await User.findOne({ where: { id: sellerId } });
   const permittedProducts = await seller.getProducts({
-    //where: { status: "permitted" },
+    where: { status: {[Op.or]: ["permitted", "complete"]} },
     include: { model: Transaction, attributes: ["buyerId", "contractAddress"] },
   });
   
@@ -177,12 +179,15 @@ router.get("/purchase/permission", isLoggedIn, async (req, res, next) => {
 
 router.delete("/cancel/:id", isLoggedIn, async (req, res, next) => {
   const userId = req.user.id;
-  const txId = req.params.id;
+  const productId = req.params.id;
   const user = await User.findOne({ where: { id: userId }});
-  const permittedTx = await Transaction.findOne({ where: { id: txId }});
+  const permittedTx = await Transaction.findOne({ where: { productId: productId }});
+  console.log("permittedTxId:", permittedTx.id);
   try { 
     const response = await connectContract.cancel(permittedTx.contractAddress, user.privatekey);
-    console.log('삭제 결과:', resonse);
+    await Product.update({status: "before"}, {where: {id: permittedTx.productId}});
+    await Transaction.destroy({where: {id: permittedTx.id}});
+    await TransactionRequest.destroy({where: {productId: productId, buyerId: permittedTx.buyerId}});
     return res.status(200).send("성공");
   } catch (error) {
     console.log(error);
