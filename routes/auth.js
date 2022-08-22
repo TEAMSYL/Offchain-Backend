@@ -36,7 +36,7 @@ router.post("/duplicateEmail", isNotLoggedIn, async (req, res, next) => {
 });
 
 router.post("/join", isNotLoggedIn, async (req, res, next) => {
-  const { email, nick, password, walletAddress, privatekey } = req.body;
+  const { email, password, walletAddress, privatekey } = req.body;
   try {
     const exUser = await User.findOne({ where: { email } });
     if (exUser) {
@@ -45,7 +45,7 @@ router.post("/join", isNotLoggedIn, async (req, res, next) => {
     const hash = await bcrypt.hash(password, 12);
     await User.create({
       email,
-      nick,
+      //nick,
       password: hash,
       walletAddress,
       privatekey,
