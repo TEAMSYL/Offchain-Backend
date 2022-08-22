@@ -12,6 +12,7 @@ module.exports = class User extends Sequelize.Model {
         nick: {
           type: Sequelize.STRING(15),
           allowNull: false,
+          defaultValue: "default",
         },
         password: {
           type: Sequelize.STRING(100),
@@ -42,6 +43,13 @@ module.exports = class User extends Sequelize.Model {
         paranoid: true,
         charset: "utf8",
         collate: "utf8_general_ci",
+        hooks: {
+          afterCreate: (user, options) => {
+            console.log("afterCreate 호출!");
+            console.log("user.id:", user.id);
+            return user.update({nick: `상점${user.id}호`});
+          }
+        }
       }
     );
   }
