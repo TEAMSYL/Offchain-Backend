@@ -135,7 +135,7 @@ router.get("/permission", isLoggedIn, async (req, res, next) => {
   const sellerId = req.user.id;
   const seller = await User.findOne({ where: { id: sellerId } });
   const permittedProducts = await seller.getProducts({
-    where: { status: "permitted" },
+    //where: { status: "permitted" },
     include: { model: Transaction, attributes: ["buyerId", "contractAddress"] },
   });
   
@@ -212,6 +212,9 @@ router.post("/trackingnumber", isLoggedIn, async (req, res, next) => {
   const user = await User.findOne({ where: { id: req.user.id}});
   const tx = await Transaction.findOne({ where: {productId: productId}});
 
+  console.log('trackingNumber:', trackingNumber);
+  console.log('trackingCode: ', trackingCode);
+
   try {
     const response = await connectContract.setTrackingNumber(tx.contractAddress, user.privatekey, parseInt(trackingNumber));
     await connectContract.setTrackingCode(tx.contractAddress, user.privatekey, String(trackingCode));
@@ -229,6 +232,8 @@ router.post("/complete", isLoggedIn, async (req, res, next) => {
 
   try {
     const response = await connectContract.completeTrade(tx.contractAddress, user.privatekey);
+
+    await Product.update({status: "complete"}, {where: {id: productId}});
     return res.status(200).send("확정완료");
   } catch (error) {
     console.log(error);
