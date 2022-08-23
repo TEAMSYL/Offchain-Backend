@@ -57,4 +57,19 @@ router.get("/:id", async (req, res, next) => {
   }
 });
 
+router.patch("/:id", async(req, res, next) => {
+  try {
+    const {nick}= req.body;
+    await User.update(
+      { nick: nick },
+      { where: { id: req.params.id } }
+    );
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+})
+
+
+
 module.exports = router;

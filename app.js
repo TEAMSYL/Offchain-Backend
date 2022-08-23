@@ -26,6 +26,7 @@ const transactionRouter = require("./routes/transaction");
 const { sequelize } = require("./models");
 const chatRouter = require("./routes/chat");
 const chatviewRouter = require("./routes/chatview");
+const store = require("./routes/store");
 // ./passport/index.js 와 같음
 const passportConfig = require("./passport");
 passportConfig(); // 패스포트 설정
@@ -72,6 +73,7 @@ app.use("/user", userRouter);
 app.use("/transaction", transactionRouter);
 app.use(chatRouter);
 app.use(chatviewRouter);
+app.use("/store", store);
 app.use(
   "/docs",
   swaggerUI.serve

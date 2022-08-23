@@ -9,6 +9,7 @@ const Transaction = require("./transaction");
 const ProductImg = require("./productImg");
 const Chat = require('./chat');
 const Chatcontent = require('./chatcontent');
+const Mystore = require('./mystore');
 
 const db = {};
 const sequelize = new Sequelize(
@@ -26,6 +27,7 @@ db.Transaction = Transaction;
 db.ProductImg = ProductImg;
 db.Chat= Chat;
 db.Chatcontent = Chatcontent;
+db.Mystore = Mystore;
 
 User.init(sequelize);
 Product.init(sequelize);
@@ -34,6 +36,7 @@ TransactionRequest.init(sequelize);
 Transaction.init(sequelize);
 Chat.init(sequelize);
 Chatcontent.init(sequelize);
+Mystore.init(sequelize);
 
 User.associate(db);
 Product.associate(db);
@@ -42,5 +45,6 @@ TransactionRequest.associate(db);
 Transaction.associate(db);
 Chat.associate(db);
 Chatcontent.associate(db);
+Mystore.associate(db);
 
 module.exports = db;

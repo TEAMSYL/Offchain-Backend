@@ -3,6 +3,7 @@ const passport = require("passport");
 const bcrypt = require("bcrypt");
 const { isLoggedIn, isNotLoggedIn } = require("./middlewares");
 const User = require("../models/user");
+const Mystore = require("../models/mystore");
 
 const router = express.Router();
 
@@ -50,6 +51,13 @@ router.post("/join", isNotLoggedIn, async (req, res, next) => {
       walletAddress,
       privatekey,
     });
+
+    await Mystore.create({
+      sellcount : 0,
+      introduce: "소개글이 없습니다.",
+      button: 0,
+    })
+
     return res.status(201).send("회원 가입 성공");
   } catch (error) {
     console.error(error);
