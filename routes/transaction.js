@@ -12,6 +12,8 @@ const connectContract = require("../src/connectContract");
 const ProductImg = require("../models/productImg");
 const { response } = require('express');
 const { Sequelize } = require("sequelize");
+const { increment, sequelize } = require("../models/mystore");
+const Mystore = require('../models/mystore');
 const Op = Sequelize.Op;
 
 const TRACKING_API_KEY = "pIIVNRYJI740e26nNS4zqA";
@@ -232,13 +234,17 @@ router.post("/trackingnumber", isLoggedIn, async (req, res, next) => {
 
 router.post("/complete", isLoggedIn, async (req, res, next) => {
   const productId = req.body.productId;
+  const sellerId = req.body.sellerId;
   const user = await User.findOne({ where: { id: req.user.id}});
   const tx = await Transaction.findOne({ where: {productId: productId}});
 
   try {
     const response = await connectContract.completeTrade(tx.contractAddress, user.privatekey);
-
     await Product.update({status: "complete"}, {where: {id: productId}});
+    await Mystore.update(
+      {sellCount: sequelize.literal('sellCount + 1')},
+      {where: {id: Number(sellerId)}},
+  );
     return res.status(200).send("확정완료");
   } catch (error) {
     console.log(error);
