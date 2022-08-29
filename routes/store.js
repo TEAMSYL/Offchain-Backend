@@ -6,9 +6,11 @@ const myStore = require("../models/mystore");
 
 router.get("/:userId", async(req, res, next) => {
     try{
+
         const store = await myStore.findOne({
             where: {id: Number(req.params.userId)},
         })
+        console.log('qwer', store);
         if (store) return res.status(200).send(store);
     } catch (error) {
         console.error(error);
@@ -24,6 +26,19 @@ router.post("/:userId", async(req, res, next) => {
             {where: {id: Number(req.params.userId)}},
         );
 
+    }catch(error){
+        console.log(error);
+        next(error);
+    }
+})
+
+router.post("/button/:userId", async(req, res, next) => {
+    try{ 
+        const {button} = req.body;
+        await myStore.update(
+            {button: button},
+            {where: {id: Number(req.params.userId)}},
+        );
     }catch(error){
         console.log(error);
         next(error);
