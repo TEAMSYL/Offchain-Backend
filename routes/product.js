@@ -11,15 +11,29 @@ const { Sequelize } = require("sequelize");
 const Op = Sequelize.Op;
 
 router.get("/", async (req, res, next) => {
+  const limit = Number(req.query.size);
+  const pageNumber = req.query.page;
+  const offset = 0 + limit * (pageNumber - 1);
   try {
-    const products = await Product.findAll({ include: ProductImg });
-    if (products) return res.status(200).send(products);
-    return res.status(400).send("조회된 상품이 없습니다.");
+    const products = await Product.findAll({
+      offset: offset,
+      limit: limit,
+      include: ProductImg,
+    });
+    const total = await Product.count();
+    const lastPage = Math.ceil(total / limit);
+    console.log(lastPage);
+    return res.status(200).send({
+      products: products,
+      isLastPage: lastPage == pageNumber ? true : false,
+      pageNumber: pageNumber,
+    });
   } catch (error) {
     console.error(error);
     next(error);
   }
 });
+
 router.get("/category/:id", async (req, res, next) => {
   try {
     const categoryId = req.params.id;
