@@ -59,5 +59,10 @@ module.exports = class User extends Sequelize.Model {
       foreignKey: "sellerId",
       sourceKey: "id",
     });
+
+    db.User.hasMany(db.Review, {
+      foreignKey: "buyerId",
+      sourceKey: "id",
+    });
   }
 };
