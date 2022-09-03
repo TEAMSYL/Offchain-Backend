@@ -7,6 +7,7 @@ const Product = require("../models/product");
 const ProductImg = require("../models/productImg");
 const { zeroPad } = require("ethers/lib/utils");
 const { Sequelize } = require("sequelize");
+const { Review, User } = require('../models');
 
 const Op = Sequelize.Op;
 
@@ -25,7 +26,7 @@ router.get("/", async (req, res, next) => {
     console.log(lastPage);
     return res.status(200).send({
       products: products,
-      isLastPage: lastPage == pageNumber ? true : false,
+      isLastPage: lastPage <= pageNumber ? true : false,
       pageNumber: pageNumber,
     });
   } catch (error) {
@@ -202,6 +203,61 @@ router.delete("/:id", async (req, res, next) => {
     }
   } catch (error) {
     console.log(error);
+  }
+});
+
+router.get("/review", isLoggedIn, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findOne({ where: { id: userId } });
+    const completedProducts = await Product.findAll({ 
+      where: { status: "complete", sellerId: userId}, 
+      include: [
+        { model: Review, required: false, attributes: ["comment", "rate"]},
+        { model: User, required: false, attributes: ["id", "nick"]}
+      ],
+    });
+
+    const reviews = completedProducts.map((review) => {
+      if (review.dataValues.Review != null) {
+        return { 
+          productId: review.dataValues.id, 
+          productName: review.dataValues.productName, 
+          thumbnail: review.dataValues.thumbnail,
+          text: review.dataValues.Review.dataValues.comment,
+          rate: review.dataValues.Review.dataValues.rate,
+          buyer: {
+            id: review.dataValues.User.dataValues.id,
+            nick: review.dataValues.User.dataValues.nick
+          }
+        };
+      }
+    }).filter(review => review != undefined);
+    res.status(200).send(reviews);
+  } catch (error) {
+    console.log(error);
+    return next(error);
+  }
+});
+
+router.post("/review", isLoggedIn, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const productId = req.body.productId;
+    const rate = req.body.rate;
+    const text = req.body.text;
+
+    const review = await Review.findOne({ where: { productId: productId}});
+    
+    if (review != null) {
+      res.status(202).send("이미 후기 작성이 완료되었습니다.");
+    } else {
+      await Review.create({ rate: rate, comment: text, productId: productId, buyerId: userId});
+      res.status(200).send("완료되었습니다.");
+    }
+  } catch (error) {
+    console.log(error);
+    return next(error);
   }
 });
 
