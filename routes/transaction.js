@@ -10,7 +10,7 @@ const User = require("../models/user");
 const Deployer = require("../src/deployContract"); // contract 배포
 const connectContract = require("../src/connectContract");
 const ProductImg = require("../models/productImg");
-const { response } = require('express');
+const { response } = require("express");
 const { Sequelize } = require("sequelize");
 const Op = Sequelize.Op;
 
@@ -66,12 +66,12 @@ router.post("/request", isLoggedIn, async (req, res, next) => {
   const { productId } = req.body;
   try {
     const existRequest = await TransactionRequest.findOne({
-      where: { 
+      where: {
         productId: productId,
-        buyerId: buyerId
-      }
+        buyerId: buyerId,
+      },
     });
-    console.log('existRequest: ', existRequest);
+    console.log("existRequest: ", existRequest);
     if (existRequest) {
       return res.status(400).send("이미 구매 요청을 한 상품입니다.");
     }
@@ -137,10 +137,10 @@ router.get("/permission", isLoggedIn, async (req, res, next) => {
   const sellerId = req.user.id;
   const seller = await User.findOne({ where: { id: sellerId } });
   const permittedProducts = await seller.getProducts({
-    where: { status: {[Op.or]: ["permitted", "complete"]} },
+    where: { status: { [Op.or]: ["permitted", "complete"] } },
     include: { model: Transaction, attributes: ["buyerId", "contractAddress"] },
   });
-  
+
   const buyers = await Promise.all(
     permittedProducts.map(async (product) => {
       const buyer = await User.findOne({
@@ -164,14 +164,19 @@ router.get("/purchase/permission", isLoggedIn, async (req, res, next) => {
   const result = await Promise.all(
     purchaseTxs.map(async (tx) => {
       const product = await Product.findOne({
-        where: { id: tx.productId }
+        where: { id: tx.productId },
       });
       const txState = await connectContract.getCurrentState(tx.contractAddress);
       const seller = await User.findOne({
         where: { id: product.sellerId },
         attributes: ["email", "nick", "id"],
       });
-      return { ...tx.dataValues, seller: seller, txState: txState, product: product};
+      return {
+        ...tx.dataValues,
+        seller: seller,
+        txState: txState,
+        product: product,
+      };
     })
   );
   res.status(200).send(result);
@@ -180,120 +185,152 @@ router.get("/purchase/permission", isLoggedIn, async (req, res, next) => {
 router.delete("/cancel/:id", isLoggedIn, async (req, res, next) => {
   const userId = req.user.id;
   const productId = req.params.id;
-  const user = await User.findOne({ where: { id: userId }});
-  const permittedTx = await Transaction.findOne({ where: { productId: productId }});
+  const user = await User.findOne({ where: { id: userId } });
+  const permittedTx = await Transaction.findOne({
+    where: { productId: productId },
+  });
   console.log("permittedTxId:", permittedTx.id);
-  try { 
-    const response = await connectContract.cancel(permittedTx.contractAddress, user.privatekey);
-    await Product.update({status: "before"}, {where: {id: permittedTx.productId}});
-    await Transaction.destroy({where: {id: permittedTx.id}});
-    await TransactionRequest.destroy({where: {productId: productId, buyerId: permittedTx.buyerId}});
+  try {
+    const response = await connectContract.cancel(
+      permittedTx.contractAddress,
+      user.privatekey
+    );
+    await Product.update(
+      { status: "before" },
+      { where: { id: permittedTx.productId } }
+    );
+    await Transaction.destroy({ where: { id: permittedTx.id } });
+    await TransactionRequest.destroy({
+      where: { productId: productId, buyerId: permittedTx.buyerId },
+    });
     return res.status(200).send("성공");
   } catch (error) {
     console.log(error);
     return next(error);
   }
-})
+});
 
 router.post("/makepayment", isLoggedIn, async (req, res, next) => {
   const txId = req.body.txId;
-  const user = await User.findOne({ where: { id: req.user.id}});
-  const tx = await Transaction.findOne({ where: {id: txId}});
+  const user = await User.findOne({ where: { id: req.user.id } });
+  const tx = await Transaction.findOne({ where: { id: txId } });
   try {
-    const response = await connectContract.makePayment(tx.contractAddress, user.privatekey);
+    const response = await connectContract.makePayment(
+      tx.contractAddress,
+      user.privatekey
+    );
     console.log(response);
-    return res.status(200).send('입금 완료');
+    return res.status(200).send("입금 완료");
   } catch (error) {
     console.log(error);
     return error.resonse;
   }
-  
-})
+});
 
 router.post("/trackingnumber", isLoggedIn, async (req, res, next) => {
   const trackingNumber = req.body.trackingNumber;
   const trackingCode = req.body.trackingCode;
   const productId = req.body.productId;
-  const user = await User.findOne({ where: { id: req.user.id}});
-  const tx = await Transaction.findOne({ where: {productId: productId}});
+  const user = await User.findOne({ where: { id: req.user.id } });
+  const tx = await Transaction.findOne({ where: { productId: productId } });
 
-  console.log('trackingNumber:', trackingNumber);
-  console.log('trackingCode: ', trackingCode);
+  console.log("trackingNumber:", trackingNumber);
+  console.log("trackingCode: ", trackingCode);
 
   try {
-    const response = await connectContract.setTrackingNumber(tx.contractAddress, user.privatekey, parseInt(trackingNumber));
-    await connectContract.setTrackingCode(tx.contractAddress, user.privatekey, String(trackingCode));
-    return res.status(200).send('등록완료');
+    const response = await connectContract.setTrackingNumber(
+      tx.contractAddress,
+      user.privatekey,
+      parseInt(trackingNumber)
+    );
+    await connectContract.setTrackingCode(
+      tx.contractAddress,
+      user.privatekey,
+      String(trackingCode)
+    );
+    return res.status(200).send("등록완료");
   } catch (error) {
     console.log(error);
     return next(error);
   }
-})
+});
 
 router.post("/complete", isLoggedIn, async (req, res, next) => {
   const productId = req.body.productId;
-  const user = await User.findOne({ where: { id: req.user.id}});
-  const tx = await Transaction.findOne({ where: {productId: productId}});
+  const user = await User.findOne({ where: { id: req.user.id } });
+  const tx = await Transaction.findOne({ where: { productId: productId } });
 
   try {
-    const response = await connectContract.completeTrade(tx.contractAddress, user.privatekey);
+    const response = await connectContract.completeTrade(
+      tx.contractAddress,
+      user.privatekey
+    );
 
-    await Product.update({status: "complete"}, {where: {id: productId}});
+    await Product.update({ status: "complete" }, { where: { id: productId } });
     return res.status(200).send("확정완료");
   } catch (error) {
     console.log(error);
     return next(error);
   }
-})
+});
 
 router.put("/return", isLoggedIn, async (req, res, next) => {
   const productId = req.body.productId;
   const trackingNumber = req.body.trackingNumber;
   const trackingCode = req.body.trackingCode;
-  const user = await User.findOne({ where: { id: req.user.id }});
-  const tx = await Transaction.findOne({ where: { productId: productId }});
+  const user = await User.findOne({ where: { id: req.user.id } });
+  const tx = await Transaction.findOne({ where: { productId: productId } });
 
   try {
-    const response = await connectContract.returnProduct(tx.contractAddress, user.privatekey, trackingNumber, trackingCode);
+    const response = await connectContract.returnProduct(
+      tx.contractAddress,
+      user.privatekey,
+      trackingNumber,
+      trackingCode
+    );
     return res.status(200).send("환불완료");
   } catch (error) {
     console.log(error);
     return next(error);
   }
-})
+});
 
 router.get("/trackinginfo/:id", isLoggedIn, async (req, res, next) => {
-    const productId = req.params.id;
-    const user = await User.findOne({ where: { id: req.user.id }});
-    const tx = await Transaction.findOne({ where: { productId: productId }});
+  const productId = req.params.id;
+  const user = await User.findOne({ where: { id: req.user.id } });
+  const tx = await Transaction.findOne({ where: { productId: productId } });
 
-    try {
-      const trackingNumber = await connectContract.getTrackingNumber(tx.contractAddress);
-      const trackingCode = await connectContract.getTrackingCode(tx.contractAddress);
+  try {
+    const trackingNumber = await connectContract.getTrackingNumber(
+      tx.contractAddress
+    );
+    const trackingCode = await connectContract.getTrackingCode(
+      tx.contractAddress
+    );
 
-      console.log('trackingNumber:', trackingNumber);
-      console.log('trackingCode: ', trackingCode);
+    console.log("trackingNumber:", trackingNumber);
+    console.log("trackingCode: ", trackingCode);
 
-      const trackingResponse = await axios.get(
-        `http://info.sweettracker.co.kr/api/v1/trackingInfo?t_key=${TRACKING_API_KEY}&t_code=${trackingCode}&t_invoice=${trackingNumber}`
-      );
-    
-      if (trackingResponse.data.status == false) {
-        return res.status(202).send(trackingResponse.data.msg);
-      }
+    const trackingResponse = await axios.get(
+      `http://info.sweettracker.co.kr/api/v1/trackingInfo?t_key=${TRACKING_API_KEY}&t_code=${trackingCode}&t_invoice=${trackingNumber}`
+    );
 
-      const trackingInfo = {
-        complete: trackingResponse.data.complete,
-        trackingNumber: trackingNumber,
-        trackingCode: trackingCode,
-        trackingDetails: trackingResponse.data.trackingDetails
-      };
-
-      return res.status(200).send(trackingInfo); 
-    } catch(error) {
-      console.log(error);
-      return next(error);
+    if (trackingResponse.data.status == false) {
+      return res.status(202).send(trackingResponse.data.msg);
     }
-})
+
+    const trackingInfo = {
+      complete: trackingResponse.data.complete,
+      trackingNumber: trackingNumber,
+      trackingCode: trackingCode,
+      trackingDetails: trackingResponse.data.trackingDetails,
+    };
+
+    return res.status(200).send(trackingInfo);
+  } catch (error) {
+    console.log(error);
+    return next(error);
+  }
+});
 
 module.exports = router;
