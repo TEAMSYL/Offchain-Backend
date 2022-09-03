@@ -25,7 +25,7 @@ router.get("/", async (req, res, next) => {
     console.log(lastPage);
     return res.status(200).send({
       products: products,
-      isLastPage: lastPage == pageNumber ? true : false,
+      isLastPage: lastPage <= pageNumber ? true : false,
       pageNumber: pageNumber,
     });
   } catch (error) {
