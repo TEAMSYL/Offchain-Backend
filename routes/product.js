@@ -298,13 +298,13 @@ router.post("/review", isLoggedIn, async (req, res, next) => {
 
 router.post("/comment", isLoggedIn, async (req, res, next) => {
   try {
-    const { comment, productId, buyerId } = req.body;
+    const { comment, productId, buyerId, responseTo } = req.body;
     await Comment.create({
       comment: comment,
       productId: productId,
       buyerId: buyerId,
-    });
-    res.status(200).send("comment 등록 완료");
+      responseTo: responseTo,
+    }).then((result) => res.status(200).send(String(result.id)));
   } catch (error) {
     console.log(error);
     next(error);
