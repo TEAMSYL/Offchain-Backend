@@ -47,11 +47,40 @@ router.get("/category/:id", async (req, res, next) => {
   }
 });
 
+router.get("/category/:id/relations", async (req, res, next) => {
+  try {
+    const categoryId = req.params.id;
+    const productId = req.query.productId;
+    const limit = Number(req.query.size);
+    const pageNumber = Number(req.query.page);
+    const offset = 0 + limit * (pageNumber - 1);
+    const total = await Product.count();
+    const lastPage = Math.ceil(total / limit);
+    const products = await Product.findAll({
+      where: {
+        category: categoryId,
+        [Op.not]: [{ id: productId }],
+      },
+      offset: offset,
+      limit: limit,
+    });
+    if (products)
+      return res.status(200).send({
+        products: products,
+        isLastPage: lastPage <= pageNumber ? true : false,
+      });
+    return res.status(400).send("조회된 상품이 없습니다.");
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
 router.get("/detail", async (req, res, next) => {
   try {
     const product = await Product.findOne({
       where: { id: req.query.id },
-      include: ProductImg,
+      include: [{ model: ProductImg, attributes: ["imgUrl"] }],
     });
     if (product) res.send(product);
   } catch (error) {
@@ -206,10 +235,9 @@ router.delete("/:id", async (req, res, next) => {
   }
 });
 
-router.get("/review", isLoggedIn, async (req, res, next) => {
+router.get("/review/:userId", isLoggedIn, async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    const user = await User.findOne({ where: { id: userId } });
+    const userId = req.params.userId;
     const completedProducts = await Product.findAll({
       where: { status: "complete", sellerId: userId },
       include: [
