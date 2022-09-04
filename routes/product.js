@@ -7,7 +7,7 @@ const Product = require("../models/product");
 const ProductImg = require("../models/productImg");
 const { zeroPad } = require("ethers/lib/utils");
 const { Sequelize } = require("sequelize");
-const { Review, User } = require('../models');
+const { Review, User } = require("../models");
 
 const Op = Sequelize.Op;
 
@@ -47,11 +47,40 @@ router.get("/category/:id", async (req, res, next) => {
   }
 });
 
+router.get("/category/:id/relations", async (req, res, next) => {
+  try {
+    const categoryId = req.params.id;
+    const productId = req.query.productId;
+    const limit = Number(req.query.size);
+    const pageNumber = Number(req.query.page);
+    const offset = 0 + limit * (pageNumber - 1);
+    const total = await Product.count();
+    const lastPage = Math.ceil(total / limit);
+    const products = await Product.findAll({
+      where: {
+        category: categoryId,
+        [Op.not]: [{ id: productId }],
+      },
+      offset: offset,
+      limit: limit,
+    });
+    if (products)
+      return res.status(200).send({
+        products: products,
+        isLastPage: lastPage <= pageNumber ? true : false,
+      });
+    return res.status(400).send("조회된 상품이 없습니다.");
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
 router.get("/detail", async (req, res, next) => {
   try {
     const product = await Product.findOne({
       where: { id: req.query.id },
-      include: ProductImg,
+      include: [{ model: ProductImg, attributes: ["imgUrl"] }],
     });
     if (product) res.send(product);
   } catch (error) {
@@ -210,29 +239,31 @@ router.get("/review", isLoggedIn, async (req, res, next) => {
   try {
     const userId = req.user.id;
     const user = await User.findOne({ where: { id: userId } });
-    const completedProducts = await Product.findAll({ 
-      where: { status: "complete", sellerId: userId}, 
+    const completedProducts = await Product.findAll({
+      where: { status: "complete", sellerId: userId },
       include: [
-        { model: Review, required: false, attributes: ["comment", "rate"]},
-        { model: User, required: false, attributes: ["id", "nick"]}
+        { model: Review, required: false, attributes: ["comment", "rate"] },
+        { model: User, required: false, attributes: ["id", "nick"] },
       ],
     });
 
-    const reviews = completedProducts.map((review) => {
-      if (review.dataValues.Review != null) {
-        return { 
-          productId: review.dataValues.id, 
-          productName: review.dataValues.productName, 
-          thumbnail: review.dataValues.thumbnail,
-          text: review.dataValues.Review.dataValues.comment,
-          rate: review.dataValues.Review.dataValues.rate,
-          buyer: {
-            id: review.dataValues.User.dataValues.id,
-            nick: review.dataValues.User.dataValues.nick
-          }
-        };
-      }
-    }).filter(review => review != undefined);
+    const reviews = completedProducts
+      .map((review) => {
+        if (review.dataValues.Review != null) {
+          return {
+            productId: review.dataValues.id,
+            productName: review.dataValues.productName,
+            thumbnail: review.dataValues.thumbnail,
+            text: review.dataValues.Review.dataValues.comment,
+            rate: review.dataValues.Review.dataValues.rate,
+            buyer: {
+              id: review.dataValues.User.dataValues.id,
+              nick: review.dataValues.User.dataValues.nick,
+            },
+          };
+        }
+      })
+      .filter((review) => review != undefined);
     res.status(200).send(reviews);
   } catch (error) {
     console.log(error);
@@ -247,12 +278,17 @@ router.post("/review", isLoggedIn, async (req, res, next) => {
     const rate = req.body.rate;
     const text = req.body.text;
 
-    const review = await Review.findOne({ where: { productId: productId}});
-    
+    const review = await Review.findOne({ where: { productId: productId } });
+
     if (review != null) {
       res.status(202).send("이미 후기 작성이 완료되었습니다.");
     } else {
-      await Review.create({ rate: rate, comment: text, productId: productId, buyerId: userId});
+      await Review.create({
+        rate: rate,
+        comment: text,
+        productId: productId,
+        buyerId: userId,
+      });
       res.status(200).send("완료되었습니다.");
     }
   } catch (error) {
