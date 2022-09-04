@@ -235,10 +235,9 @@ router.delete("/:id", async (req, res, next) => {
   }
 });
 
-router.get("/review", isLoggedIn, async (req, res, next) => {
+router.get("/review/:userId", isLoggedIn, async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    const user = await User.findOne({ where: { id: userId } });
+    const userId = req.params.userId;
     const completedProducts = await Product.findAll({
       where: { status: "complete", sellerId: userId },
       include: [
