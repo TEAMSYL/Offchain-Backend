@@ -16,7 +16,7 @@ const { increment, sequelize } = require("../models/mystore");
 const Mystore = require("../models/mystore");
 const Op = Sequelize.Op;
 
-const TRACKING_API_KEY = "pIIVNRYJI740e26nNS4zqA";
+const TRACKING_API_KEY = "7ej8scmCTzyMI7EtfE9g4A";
 
 router.get("/request/sent", isLoggedIn, async (req, res, next) => {
   const buyerId = req.user.id;
