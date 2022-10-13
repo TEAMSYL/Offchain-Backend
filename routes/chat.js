@@ -110,4 +110,19 @@ router.post("/createchat", async (req, res) => {
   res.status(200).send("방생성완료");
 });
 
+router.get("/chat/:productId", async (req, res, next) => {
+  try {
+    console.log("testtest : ", req.params.productId);
+    const chatCount = await Chat.count({
+      where: {
+        productId: Number(req.params.productId),
+      },
+    });
+    console.log("testtest : ", chatCount);
+    res.status(200).send(String(chatCount));
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 module.exports = router;

@@ -7,7 +7,7 @@ const Product = require("../models/product");
 const ProductImg = require("../models/productImg");
 const { zeroPad } = require("ethers/lib/utils");
 const { Sequelize } = require("sequelize");
-const { Review, User } = require("../models");
+const { Review, User, Comment } = require("../models");
 
 const Op = Sequelize.Op;
 
@@ -293,6 +293,35 @@ router.post("/review", isLoggedIn, async (req, res, next) => {
   } catch (error) {
     console.log(error);
     return next(error);
+  }
+});
+
+router.post("/comment", isLoggedIn, async (req, res, next) => {
+  try {
+    const { comment, productId, buyerId, responseTo } = req.body;
+    await Comment.create({
+      comment: comment,
+      productId: productId,
+      buyerId: buyerId,
+      responseTo: responseTo,
+    }).then((result) => res.status(200).send(String(result.id)));
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
+
+router.get("/comment/:productId", isLoggedIn, async (req, res, next) => {
+  try {
+    const comments = await Comment.findAll({
+      where: {
+        [Op.or]: [{ productId: req.params.productId }],
+      },
+    });
+    if (comments) res.send(comments);
+  } catch (error) {
+    console.log(error);
+    next(error);
   }
 });
 

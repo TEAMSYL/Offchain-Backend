@@ -70,6 +70,10 @@ module.exports = class Product extends Sequelize.Model {
     db.Product.hasOne(db.Review, {
       foreignKey: "productId",
       sourceKey: "id",
-    })
+    });
+    db.Product.hasOne(db.Comment, {
+      foreignKey: "productId",
+      sourceKey: "id",
+    });
   }
 };
